@@ -226,3 +226,7 @@
 
 # 开发者交流
   QQ群：536962005
+
+
+
+gunicorn adminset.wsgi:application 
