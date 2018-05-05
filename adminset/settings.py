@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 import os
 import ConfigParser
 
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -94,7 +93,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'adminset.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
@@ -138,7 +136,6 @@ else:
         }
     }
 
-
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
 
@@ -157,7 +154,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
 
@@ -171,11 +167,10 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 # sys.path.append(os.path.join(BASE_DIR, 'vendor').replace('\\', '/'))
-#STATIC_ROOT = os.path.join(APP_PATH,'static').replace('\\','/')
+# STATIC_ROOT = os.path.join(APP_PATH,'static').replace('\\','/')
 STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static').replace('\\', '/'),
