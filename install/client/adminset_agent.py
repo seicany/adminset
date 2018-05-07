@@ -4,6 +4,7 @@ import os, re, platform, socket, time, json, threading
 import psutil, schedule, requests
 from subprocess import Popen, PIPE
 import logging
+
 AGENT_VERSION = "0.23"
 token = 'HPcWR7l4NJNJ'
 server_ip = '192.168.47.130'
@@ -11,11 +12,12 @@ server_ip = '192.168.47.130'
 
 def log(log_name, path=None):
     logging.basicConfig(level=logging.INFO,
-                format='%(asctime)s %(levelname)s %(message)s',
-                datefmt='%Y%m%d %H:%M:%S',
-                filename=path+log_name,
-                filemode='ab+')
+                        format='%(asctime)s %(levelname)s %(message)s',
+                        datefmt='%Y%m%d %H:%M:%S',
+                        filename=path + log_name,
+                        filemode='ab+')
     return logging.basicConfig
+
 
 log("agent.log", "/var/opt/adminset/client/")
 
@@ -41,11 +43,11 @@ def parser_dmi(dmidata):
     line_in = False
     for line in dmidata.split('\n'):
         if line.startswith('System Information'):
-             line_in = True
-             continue
+            line_in = True
+            continue
         if line.startswith('\t') and line_in:
-                 k,v = [i.strip() for i in line.split(':')]
-                 pd[k] = v
+            k, v = [i.strip() for i in line.split(':')]
+            pd[k] = v
         else:
             line_in = False
     return pd
@@ -53,22 +55,24 @@ def parser_dmi(dmidata):
 
 def get_mem_total():
     cmd = "grep MemTotal /proc/meminfo"
-    p = Popen(cmd, stdout=PIPE, shell = True)
+    p = Popen(cmd, stdout=PIPE, shell=True)
+    print p.communicate()
     data = p.communicate()[0]
     mem_total = data.split()[1]
-    memtotal = int(round(int(mem_total)/1024.0/1024.0, 0))
+    memtotal = int(round(int(mem_total) / 1024.0 / 1024.0, 0))
     return memtotal
 
 
 def get_cpu_model():
     cmd = "cat /proc/cpuinfo"
-    p = Popen(cmd, stdout=PIPE, stderr = PIPE, shell = True)
+    p = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
     stdout, stderr = p.communicate()
     return stdout
 
 
 def get_cpu_cores():
-    cpu_cores = {"physical": psutil.cpu_count(logical=False) if psutil.cpu_count(logical=False) else 0, "logical": psutil.cpu_count()}
+    cpu_cores = {"physical": psutil.cpu_count(logical=False) if psutil.cpu_count(logical=False) else 0,
+                 "logical": psutil.cpu_count()}
     return cpu_cores
 
 
@@ -120,7 +124,8 @@ def asset_info():
     data_info['sn'] = parser_dmi(get_dmi())['Serial Number']
     data_info['vendor'] = parser_dmi(get_dmi())['Manufacturer']
     data_info['product'] = parser_dmi(get_dmi())['Version']
-    data_info['osver'] = platform.linux_distribution()[0] + " " + platform.linux_distribution()[1] + " " + platform.machine()
+    data_info['osver'] = platform.linux_distribution()[0] + " " + platform.linux_distribution()[
+        1] + " " + platform.machine()
     data_info['hostname'] = platform.node()
     data_info['token'] = token
     data_info['agent_version'] = AGENT_VERSION
@@ -129,7 +134,7 @@ def asset_info():
 
 def asset_info_post():
     pversion = platform.python_version()
-    pv = re.search(r'2.6', pversion)
+    pv = re.search(r'2.7', pversion)
     if not pv:
         osenv = os.environ["LANG"]
         os.environ["LANG"] = "us_EN.UTF8"
@@ -161,13 +166,13 @@ def get_sys_cpu():
 def get_sys_mem():
     sys_mem = {}
     mem = psutil.virtual_memory()
-    sys_mem["total"] = mem.total/1024/1024
+    sys_mem["total"] = mem.total / 1024 / 1024
     sys_mem["percent"] = mem.percent
-    sys_mem["available"] = mem.available/1024/1024
-    sys_mem["used"] = mem.used/1024/1024
-    sys_mem["free"] = mem.free/1024/1024
-    sys_mem["buffers"] = mem.buffers/1024/1024
-    sys_mem["cached"] = mem.cached/1024/1024
+    sys_mem["available"] = mem.available / 1024 / 1024
+    sys_mem["used"] = mem.used / 1024 / 1024
+    sys_mem["free"] = mem.free / 1024 / 1024
+    sys_mem["buffers"] = mem.buffers / 1024 / 1024
+    sys_mem["cached"] = mem.cached / 1024 / 1024
     return sys_mem
 
 
@@ -175,9 +180,9 @@ def parser_sys_disk(mountpoint):
     partitions_list = {}
     d = psutil.disk_usage(mountpoint)
     partitions_list['mountpoint'] = mountpoint
-    partitions_list['total'] = round(d.total/1024/1024/1024.0, 2)
-    partitions_list['free'] = round(d.free/1024/1024/1024.0, 2)
-    partitions_list['used'] = round(d.used/1024/1024/1024.0, 2)
+    partitions_list['total'] = round(d.total / 1024 / 1024 / 1024.0, 2)
+    partitions_list['free'] = round(d.free / 1024 / 1024 / 1024.0, 2)
+    partitions_list['used'] = round(d.used / 1024 / 1024 / 1024.0, 2)
     partitions_list['percent'] = d.percent
     return partitions_list
 
@@ -194,7 +199,6 @@ def get_sys_disk():
 
 # 函数获取各网卡发送、接收字节数
 def get_nic():
-
     key_info = psutil.net_io_counters(pernic=True).keys()  # 获取网卡名称
 
     recv = {}
@@ -209,7 +213,6 @@ def get_nic():
 
 # 函数计算每秒速率
 def get_nic_rate(func):
-
     key_info, old_recv, old_sent = func()  # 上一秒收集的数据
     time.sleep(1)
     key_info, now_recv, now_sent = func()  # 当前所收集的数据
@@ -219,7 +222,7 @@ def get_nic_rate(func):
 
     for key in key_info:
         net_in.setdefault(key, (now_recv.get(key) - old_recv.get(key)) / 1024)  # 每秒接收速率
-        net_out.setdefault(key, (now_sent.get(key) - old_sent.get(key)) / 1024) # 每秒发送速率
+        net_out.setdefault(key, (now_sent.get(key) - old_sent.get(key)) / 1024)  # 每秒发送速率
 
     return key_info, net_in, net_out
 
@@ -235,7 +238,6 @@ def get_net_info():
 
 
 def agg_sys_info():
-
     logging.info('Get the system infos from host:')
     sys_info = {'hostname': platform.node(),
                 'cpu': get_sys_cpu(),
@@ -255,11 +257,13 @@ def run_threaded(job_func):
     job_thread = threading.Thread(target=job_func)
     job_thread.start()
 
+
 def get_pid():
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     pid = str(os.getpid())
-    with open(BASE_DIR+"/adminsetd.pid", "wb+") as pid_file:
+    with open(BASE_DIR + "/adminsetd.pid", "wb+") as pid_file:
         pid_file.writelines(pid)
+
 
 if __name__ == "__main__":
     get_pid()

@@ -7,9 +7,11 @@ adminset_dir="$main_dir/main"
 data_dir="$main_dir/data"
 config_dir="$main_dir/config"
 logs_dir="$main_dir/logs"
+client_dir="$main_dir/client"
 cd "$( dirname "$0"  )"
 cd .. && cd ..
 cur_dir=$(pwd)
+echo "current dir:"$cur_dir
 mkdir -p $adminset_dir
 mkdir -p $data_dir/scripts
 mkdir -p $data_dir/ansible/playbook
@@ -18,18 +20,8 @@ mkdir -p $config_dir
 mkdir -p $config_dir/webssh
 mkdir -p $logs_dir
 mkdir -p $main_dir/pid
+mkdir -p $client_dir
 
-# 关闭selinux
-se_status=$(getenforce)
-if [ $se_status != Enforcing ]
-then
-    echo "selinux is diabled, install progress is running"
-    sleep 1
-else
-    echo "Please attention, Your system selinux is enforcing"
-	setenforce 0
-	sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" /etc/sysconfig/selinux
-fi
 
 
 # 安装依赖
@@ -41,21 +33,12 @@ yum install -y openssl openssl-devel
 echo "build webssh"
 /usr/bin/yum install -y nodejs
 cd $cur_dir/vendor/WebSSH2
-#/usr/bin/npm install -g cnpm --registry=https://registry.npm.taobao.org
-#/usr/bin/cnpm install --production
-#/usr/bin/cnpm install forever -g
-/usr/bin/npm config set registry http://registry.cnpmjs.org
-/usr/bin/npm install --production
-/usr/bin/npm install forever -g
 
-# 分发代码
-if [ ! $cur_dir ] || [ ! $adminset_dir ]
-then
-    echo "install directory info error, please check your system environment program exit"
-    exit 1
-else
-    rsync --delete --progress -ra --exclude '.git' $cur_dir/ $adminset_dir
-fi
+/usr/bin/npm install -g cnpm --registry=https://registry.npm.taobao.org
+/usr/bin/cnpm install --production
+/usr/bin/cnpm install forever -g
+
+
 scp $adminset_dir/install/server/ansible/ansible.cfg /etc/ansible/ansible.cfg
 
 # install webssh
@@ -80,30 +63,17 @@ yum install -y mongodb mongodb-server
 /bin/systemctl enable mongod 
 
 # 安装主程序
-echo "####install adminset####"
-mkdir -p  ~/.pip
-cat <<EOF > ~/.pip/pip.conf
-[global]
-index-url = http://mirrors.aliyun.com/pypi/simple/
+#echo "####install adminset####"
+#mkdir -p  ~/.pip
+#cat <<EOF > ~/.pip/pip.conf
+#[global]
+#index-url = http://mirrors.aliyun.com/pypi/simple/
+#
+#[install]
+#trusted-host=mirrors.aliyun.com
+#EOF
 
-[install]
-trusted-host=mirrors.aliyun.com
-EOF
-pip install kombu==4.1.0
-pip install celery==4.0.2
-pip install billiard==3.5.0.3
-pip install pytz==2017.2
-pip install kombu==4.1.0
-cd $adminset_dir/vendor/django-celery-results-master
-python setup.py build
-python setup.py install
 
-cd $adminset_dir
-pip install -r requirements.txt
-python manage.py makemigrations
-python manage.py migrate
-echo "please create your adminset' super admin:"
-#python manage.py createsuperuser
 source /etc/profile
 /usr/bin/mysql -e "insert into adminset.accounts_userinfo (password,username,email,is_active,is_superuser) values ('pbkdf2_sha256\$24000\$2odRjOCV1G1V\$SGJCqWf0Eqej6bjjxusAojWtZkz99vEJlDbQHUlavT4=','admin','admin@126.com',1,1);"
 scp $adminset_dir/install/server/adminset.service /usr/lib/systemd/system
@@ -140,26 +110,11 @@ scp $adminset_dir/install/server/nginx/nginx.conf /etc/nginx
 service nginx start
 nginx -s reload
 
-# create ssh config
-echo "create ssh-key, you could choose no if you had have ssh key"
-if [ ! -e ~/.ssh/id_rsa.pub ]
-then
-    ssh-keygen -q -N "" -t rsa -f /root/.ssh/id_rsa
-else
-    echo "you had already have a ssh rsa file."
-fi
-scp $adminset_dir/install/server/ssh/config ~/.ssh/config
 
 
 # 完成安装
 echo "##############install finished###################"
 systemctl daemon-reload
-service redis restart
-service mariadb restart
-service adminset restart
-service celery restart
-service beat restart
-service mongod restart
 service sshd restart
 service webssh restart
 echo "please access website http://server_ip"
