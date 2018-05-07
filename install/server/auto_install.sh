@@ -21,7 +21,7 @@ mkdir -p $logs_dir
 mkdir -p $main_dir/pid
 mkdir -p $client_dir
 
-
+exit
 
 # 安装依赖
 echo "####install depandencies####"
