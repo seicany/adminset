@@ -56,7 +56,6 @@ def parser_dmi(dmidata):
 def get_mem_total():
     cmd = "grep MemTotal /proc/meminfo"
     p = Popen(cmd, stdout=PIPE, shell=True)
-    print p.communicate()
     data = p.communicate()[0]
     mem_total = data.split()[1]
     memtotal = int(round(int(mem_total) / 1024.0 / 1024.0, 0))
