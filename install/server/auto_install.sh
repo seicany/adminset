@@ -74,18 +74,18 @@ yum install -y mongodb mongodb-server
 #EOF
 
 
-source /etc/profile
-/usr/bin/mysql -e "insert into adminset.accounts_userinfo (password,username,email,is_active,is_superuser) values ('pbkdf2_sha256\$24000\$2odRjOCV1G1V\$SGJCqWf0Eqej6bjjxusAojWtZkz99vEJlDbQHUlavT4=','admin','admin@126.com',1,1);"
-scp $adminset_dir/install/server/adminset.service /usr/lib/systemd/system
-systemctl daemon-reload
-chkconfig adminset on
-service adminset start
+#source /etc/profile
+#/usr/bin/mysql -e "insert into adminset.accounts_userinfo (password,username,email,is_active,is_superuser) values ('pbkdf2_sha256\$24000\$2odRjOCV1G1V\$SGJCqWf0Eqej6bjjxusAojWtZkz99vEJlDbQHUlavT4=','admin','admin@126.com',1,1);"
+#scp $adminset_dir/install/server/adminset.service /usr/lib/systemd/system
+#systemctl daemon-reload
+#chkconfig adminset on
+#service adminset start
 
-#安装redis
-echo "####install redis####"
-yum install redis -y
-chkconfig redis on
-service redis start
+##安装redis
+#echo "####install redis####"
+#yum install redis -y
+#chkconfig redis on
+#service redis start
 
 # 安装celery
 echo "####install celery####"
@@ -100,16 +100,16 @@ chkconfig celery on
 chkconfig beat on
 service celery start
 service beat start
-
-# 安装nginx
-echo "####install nginx####"
-yum install nginx -y
-chkconfig nginx on
-scp $adminset_dir/install/server/nginx/adminset.conf /etc/nginx/conf.d
-scp $adminset_dir/install/server/nginx/nginx.conf /etc/nginx
-service nginx start
-nginx -s reload
-
+#
+## 安装nginx
+#echo "####install nginx####"
+#yum install nginx -y
+#chkconfig nginx on
+#scp $adminset_dir/install/server/nginx/adminset.conf /etc/nginx/conf.d
+#scp $adminset_dir/install/server/nginx/nginx.conf /etc/nginx
+#service nginx start
+#nginx -s reload
+#
 
 
 # 完成安装
