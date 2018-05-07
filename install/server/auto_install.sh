@@ -17,7 +17,6 @@ mkdir -p $data_dir/scripts
 mkdir -p $data_dir/ansible/playbook
 mkdir -p $data_dir/ansible/roles
 mkdir -p $config_dir
-mkdir -p $config_dir/webssh
 mkdir -p $logs_dir
 mkdir -p $main_dir/pid
 mkdir -p $client_dir
@@ -29,10 +28,7 @@ echo "####install depandencies####"
 yum install -y epel-release
 yum install -y gcc expect python-pip python-devel ansible smartmontools dmidecode libselinux-python git rsync dos2unix
 yum install -y openssl openssl-devel
-# build webssh
-echo "build webssh"
-/usr/bin/yum install -y nodejs
-cd $cur_dir/vendor/WebSSH2
+
 
 /usr/bin/npm install -g cnpm --registry=https://registry.npm.taobao.org
 /usr/bin/cnpm install --production
@@ -41,9 +37,6 @@ cd $cur_dir/vendor/WebSSH2
 
 scp $adminset_dir/install/server/ansible/ansible.cfg /etc/ansible/ansible.cfg
 
-# install webssh
-scp /var/opt/adminset/main/install/server/webssh/webssh.service /usr/lib/systemd/system/webssh.service
-systemctl enable webssh.service
 
 
 #安装数据库
@@ -77,7 +70,6 @@ yum install -y mongodb mongodb-server
 #source /etc/profile
 #/usr/bin/mysql -e "insert into adminset.accounts_userinfo (password,username,email,is_active,is_superuser) values ('pbkdf2_sha256\$24000\$2odRjOCV1G1V\$SGJCqWf0Eqej6bjjxusAojWtZkz99vEJlDbQHUlavT4=','admin','admin@126.com',1,1);"
 #scp $adminset_dir/install/server/adminset.service /usr/lib/systemd/system
-#systemctl daemon-reload
 #chkconfig adminset on
 #service adminset start
 
@@ -95,7 +87,6 @@ scp $adminset_dir/install/server/celery/celery.service /usr/lib/systemd/system
 scp $adminset_dir/install/server/celery/start_celery.sh $config_dir/celery/start_celery.sh
 scp $adminset_dir/install/server/celery/beat.service /usr/lib/systemd/system
 chmod +x $config_dir/celery/start_celery.sh
-systemctl daemon-reload
 chkconfig celery on
 chkconfig beat on
 service celery start
@@ -110,13 +101,3 @@ service beat start
 #service nginx start
 #nginx -s reload
 #
-
-
-# 完成安装
-echo "##############install finished###################"
-systemctl daemon-reload
-service sshd restart
-service webssh restart
-echo "please access website http://server_ip"
-echo "you have installed adminset successfully!!!"
-echo "################################################"
